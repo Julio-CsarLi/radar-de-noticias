@@ -1,0 +1,170 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "25825475-4ef8-48f6-b199-f4a8c1c01c60",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://hipertextual.com/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1fd39a8c-a9e1-499a-b9a8-37dad6ad5ede",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Título de la noticia: {{ $json.title }}\nContenido original: {{ $json.contentSnippet }}\nEnlace: {{ $json.link }}\n\nActúa como un periodista experto en tecnología. Lee el título y el contenido original. Redacta un resumen de máximo 2 viñetas (bullet points) con lo más importante, eliminando cualquier tono amarillista o clickbait. Al final del resumen, añade la palabra \"Fuente: \" seguida del Enlace."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "9c5d6bc9-0357-4804-a0e1-9cf452e15793",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2JilKpvySGpIF9dB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5268839059",
+        "text": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "9e61aeee-f254-407e-9b01-8a7299fbe75c",
+      "name": "Send a text message",
+      "webhookId": "fe9fdc85-a8a9-4fd0-bd44-5d7bd054227d",
+      "credentials": {
+        "telegramApi": {
+          "id": "KwgmObXwzmlZePCS",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "f051a502-b0dc-4395-ae56-9d3ac45cc19b",
+      "name": "Limit"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4032d6c6-420c-4db4-91a7-5af5449e5181",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22151bc69bb7acb9450753d1611b438ea6c15538655173ea34daba53a80fdc49"
+  },
+  "id": "Lfh8B9oDKJ5H7WR1",
+  "tags": []
+}
